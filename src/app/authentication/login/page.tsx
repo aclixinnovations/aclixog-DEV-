@@ -1,97 +1,36 @@
 "use client";
-import Link from "next/link";
-import { Grid, Box, Card, Stack, Typography } from "@mui/material";
-// components
-import PageContainer from "@/app/(DashboardLayout)/components/container/PageContainer";
-import AuthLogin from "../auth/AuthLogin";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-const Login2 = () => {
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  async function handleLogin(e: any) {
+    e.preventDefault();
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      document.cookie = `token=${data.token}; path=/;`;
+      router.push("/app"); // redirect to dashboard
+    } else {
+      alert(data.message);
+    }
+  }
+
   return (
-    <PageContainer title="Login" description="this is Login page">
-      <Box
-        sx={{
-          position: "relative",
-          "&:before": {
-            content: '""',
-            background: "radial-gradient(#d2f1df, #d3d7fa, #bad8f4)",
-            backgroundSize: "400% 400%",
-            animation: "gradient 15s ease infinite",
-            position: "absolute",
-            height: "100%",
-            width: "100%",
-            opacity: "0.3",
-          },
-        }}
-      >
-        <Grid
-          container
-          spacing={0}
-          justifyContent="center"
-          sx={{ height: "100vh" }}
-        >
-          <Grid
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            size={{
-              xs: 12,
-              sm: 12,
-              lg: 4,
-              xl: 3
-            }}>
-            <Card
-              elevation={9}
-              sx={{ p: 4, zIndex: 1, width: "100%", maxWidth: "500px" }}
-            >
-              <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
-                <Typography variant="h2" fontWeight="700" color="primary">
-                  ACLIX
-                </Typography>
-              </Box>
-              <AuthLogin
-                subtext={
-                  <Typography
-                    variant="subtitle1"
-                    textAlign="center"
-                    color="textSecondary"
-                    mb={1}
-                  >
-                    Welcome to ACLIX
-                  </Typography>
-                }
-                subtitle={
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    justifyContent="center"
-                    mt={3}
-                  >
-                    <Typography
-                      color="textSecondary"
-                      variant="h6"
-                      fontWeight="500"
-                    >
-                      New to ACLIX?
-                    </Typography>
-                    <Typography
-                      component={Link}
-                      href="/authentication/register"
-                      fontWeight="500"
-                      sx={{
-                        textDecoration: "none",
-                        color: "primary.main",
-                      }}
-                    >
-                      Create an account
-                    </Typography>
-                  </Stack>
-                }
-              />
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
-    </PageContainer>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h2 className="text-2xl font-bold mb-4">Login</h2>
+      <form onSubmit={handleLogin} className="flex flex-col gap-4 w-72">
+        <input type="email" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} required className="border p-2 rounded"/>
+        <input type="password" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} required className="border p-2 rounded"/>
+        <button type="submit" className="bg-blue-600 text-white py-2 rounded">Login</button>
+      </form>
+    </div>
   );
-};
-export default Login2;
+}
