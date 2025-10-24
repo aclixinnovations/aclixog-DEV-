@@ -1,95 +1,40 @@
 "use client";
-import { Grid, Box, Card, Typography, Stack } from "@mui/material";
-import Link from "next/link";
-import PageContainer from "@/app/(DashboardLayout)/components/container/PageContainer";
-import AuthRegister from "../auth/AuthRegister";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-const Register2 = () => (
-  <PageContainer title="Register" description="this is Register page">
-    <Box
-      sx={{
-        position: "relative",
-        "&:before": {
-          content: '""',
-          background: "radial-gradient(#d2f1df, #d3d7fa, #bad8f4)",
-          backgroundSize: "400% 400%",
-          animation: "gradient 15s ease infinite",
-          position: "absolute",
-          height: "100%",
-          width: "100%",
-          opacity: "0.3",
-        },
-      }}
-    >
-      <Grid
-        container
-        spacing={0}
-        justifyContent="center"
-        sx={{ height: "100vh" }}
-      >
-        <Grid
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          size={{
-            xs: 12,
-            sm: 12,
-            lg: 4,
-            xl: 3
-          }}>
-          <Card
-            elevation={9}
-            sx={{ p: 4, zIndex: 1, width: "100%", maxWidth: "500px" }}
-          >
-            <Box display="flex" alignItems="center" justifyContent="center" mb={3}>
-              <Typography variant="h2" fontWeight="700" color="primary">
-                ACLIX
-              </Typography>
-            </Box>
-            <AuthRegister
-              subtext={
-                <Typography
-                  variant="subtitle1"
-                  textAlign="center"
-                  color="textSecondary"
-                  mb={1}
-                >
-                  Join ACLIX Today
-                </Typography>
-              }
-              subtitle={
-                <Stack
-                  direction="row"
-                  justifyContent="center"
-                  spacing={1}
-                  mt={3}
-                >
-                  <Typography
-                    color="textSecondary"
-                    variant="h6"
-                    fontWeight="400"
-                  >
-                    Already have an account?
-                  </Typography>
-                  <Typography
-                    component={Link}
-                    href="/authentication/login"
-                    fontWeight="500"
-                    sx={{
-                      textDecoration: "none",
-                      color: "primary.main",
-                    }}
-                  >
-                    Sign In
-                  </Typography>
-                </Stack>
-              }
-            />
-          </Card>
-        </Grid>
-      </Grid>
-    </Box>
-  </PageContainer>
-);
+export default function RegisterPage() {
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "user" });
+  const router = useRouter();
 
-export default Register2;
+  async function handleRegister(e: any) {
+    e.preventDefault();
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      alert("Registered successfully!");
+      router.push("/authentication/login");
+    } else {
+      alert(data.message);
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h2 className="text-2xl font-bold mb-4">Register</h2>
+      <form onSubmit={handleRegister} className="flex flex-col gap-4 w-72">
+        <input type="text" placeholder="Full Name" value={form.name} onChange={(e)=>setForm({...form,name:e.target.value})} required className="border p-2 rounded"/>
+        <input type="email" placeholder="Email" value={form.email} onChange={(e)=>setForm({...form,email:e.target.value})} required className="border p-2 rounded"/>
+        <input type="password" placeholder="Password" value={form.password} onChange={(e)=>setForm({...form,password:e.target.value})} required className="border p-2 rounded"/>
+        <select value={form.role} onChange={(e)=>setForm({...form,role:e.target.value})} className="border p-2 rounded">
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+        <button type="submit" className="bg-green-600 text-white py-2 rounded">Register</button>
+      </form>
+    </div>
+  );
+}
