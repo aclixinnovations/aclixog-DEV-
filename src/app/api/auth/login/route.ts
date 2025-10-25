@@ -21,12 +21,54 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
     }
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+  // --- BEGIN REPLACE: token sign + cookie set block ---
+import jwt from "jsonwebtoken"; // ensure this import exists at the top of the file
 
+// Create token (server runtime - Node) using the same JWT_SECRET as middleware expects
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  // Fail safe: send server error if secret is not configured
+  return new Response(JSON.stringify({ error: "Server misconfiguration: missing JWT_SECRET" }), {
+    status: 500,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+// sign payload - ensure you include `role` in the payload
+const token = jwt.sign(
+  {
+    id: user._id,
+    email: user.email,
+    role: user.role, // must be "user" | "admin" | "owner"
+  },
+  jwtSecret,
+  { expiresIn: "7d" }
+);
+
+// set cookie `token` (HTTP-only, Secure in production)
+const cookieOptions = [
+  `token=${token}`,
+  `Path=/`,
+  `HttpOnly`,
+  `Max-Age=${7 * 24 * 60 * 60}`, // 7 days in seconds
+  `SameSite=Lax`,
+];
+
+// If you use HTTPS in production, add `Secure` flag for Vercel
+if (process.env.NODE_ENV === "production") {
+  cookieOptions.push("Secure");
+}
+
+// Return response with cookie set (adjust depending on how your route responds)
+return new Response(JSON.stringify({ success: true }), {
+  status: 200,
+  headers: {
+    "content-type": "application/json",
+    "Set-Cookie": cookieOptions.join("; "),
+  },
+});
+// --- END REPLACE ---
+    
     return NextResponse.json({
       message: "Login successful",
       token,
