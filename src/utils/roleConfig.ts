@@ -1,40 +1,26 @@
 // src/utils/roleConfig.ts
 /**
- * ROLE_MAP is an ordered array of { path, allowedRoles }.
- * middleware.ts will iterate this list and pick the first matching path
- * (exact match or .startsWith).
+ * ROLE_MAP determines which roles can access which path prefixes.
  *
- * Add or change entries here to control which roles can access which path prefixes.
+ * Order matters only for readability; code does a startsWith check.
  *
- * You asked for three roles: "owner", "admin", "user".
- *
- * Default behavior in middleware:
- * - If a request path matches an entry here -> role must be one of allowedRoles.
- * - If no entries match -> any authenticated user can access.
- *
- * Examples included below:
- *
- * - Owner-only area: /owner...
- * - Admin area (admin OR owner): /admin...
- * - A management area (admin only): /management...
- *
- * Edit this file to suit your app route layout.
+ * Roles in your app: "owner", "admin", "user"
  */
-
 export const ROLE_MAP = [
-  // Owner-only pages
-  { path: "/owner", allowedRoles: ["owner"] },
+  // Owner-only area
+  { path: "/owner", allowedRoles: ["owner", "admin"] }, // owner primary, admin allowed as fallback
 
-  // Admin pages (allow owner as well — owners can act as admin)
+  // Admin area - admin + owner
   { path: "/admin", allowedRoles: ["admin", "owner"] },
 
-  // Any other manager-style page if you had more (example)
+  // Management example - admin only
   { path: "/management", allowedRoles: ["admin"] },
-
-  // Add more protected prefixes as needed:
-  // { path: "/billing", allowedRoles: ["admin", "owner"] },
 ];
 
+/**
+ * PUBLIC_PATHS - middleware will allow these without authentication.
+ * Keep login/register and API login/register public.
+ */
 export const PUBLIC_PATHS = [
   "/authentication/login",
   "/authentication/register",
