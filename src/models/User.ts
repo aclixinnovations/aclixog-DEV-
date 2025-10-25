@@ -1,26 +1,26 @@
-import mongoose, { Schema, Document, models } from "mongoose";
+// src/models/User.ts
+import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IUser extends Document {
-  name: string;
   email: string;
   password: string;
-  role: "admin" | "manager" | "user";
+  name?: string;
+  role: "owner" | "admin" | "user";
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const UserSchema = new Schema<IUser>(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true },
-    role: {
-      type: String,
-      enum: ["admin", "manager", "user"],
-      default: "user",
-    },
+    name: { type: String },
+    role: { type: String, enum: ["owner", "admin", "user"], default: "owner" }, // default owner per your request
   },
   { timestamps: true }
 );
 
-const User = models.User || mongoose.model<IUser>("User", UserSchema);
+// Prevent model overwrite upon hot reloads in dev
+const UserModel: Model<IUser> = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
 
-export default User;
+export default UserModel;
